@@ -1,0 +1,152 @@
+---
+title: "Gracilaria"
+author: "Lilith Diener"
+date: "2025-02-25"
+output: html_document
+---
+
+## ...
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+library(sf)
+library(ggplot2)
+library(rinat)
+library(rosm)
+library(ggspatial)
+```
+
+Project idea: Establishing the distribution of agar-producing red algae in 
+relation to existing MPAs
+
+Red algae species: Gelidium pristoides, Gelidium abbottiorum, 
+Gelidium pteridifolium, Gracilaria gracilis
+
+```{r, include=FALSE}
+# Call the data directly from iNat
+gpr <- get_inat_obs(taxon_name = "Gelidium pristoides",
+                   bounds = c(-35, 18, -33.5, 18.5),
+                   maxresults = 1000)
+
+#View the first few rows of data
+head(gpr)
+
+# Call the data directly from iNat
+ga <- get_inat_obs(taxon_name = "Gelidium abbottiorum",
+                    bounds = c(-35, 18, -33.5, 18.5),
+                    maxresults = 1000)
+
+#View the first few rows of data
+head(ga)
+
+# Call the data directly from iNat
+gpt <- get_inat_obs(taxon_name = "Gelidium pteridifolium",
+                   bounds = c(-35, 18, -33.5, 18.5),
+                   maxresults = 1000)
+
+#View the first few rows of data
+head(gpt)
+
+# Call the data directly from iNat
+gg <- get_inat_obs(taxon_name = "Gracilaria gracilis",
+                   bounds = c(-35, 18, -33.5, 18.5),
+                   maxresults = 1000)
+
+#View the first few rows of data
+head(gg)
+```
+
+```{r, include=FALSE}  
+# Merge the 4 datasets into a single data frame using rbind()
+# rbind() works because all four datasets come from iNat and have the 
+# same column structure. If column names differed, I would have had to standardise 
+# them first.
+
+# Add a new column before merging to keep track of which species each 
+# observation belongs to
+
+# Add species column
+gpr$species <- "Gelidium pristoides"
+ga$species <- "Gelidium abbottiorum"
+gpt$species <- "Gelidium pteridifolium"
+gg$species <- "Gracilaria gracilis"
+
+# Merge into one dataset
+red_algae_data <- rbind(gpr, ga, gpt, gg)
+
+# Check structure
+str(red_algae_data)
+```
+
+```{r, include=FALSE}                  
+#Filter returned observations by a range of column attribute criteria
+gpr <- gpr %>% filter(positional_accuracy<46 & 
+                      latitude<0 &
+                      !is.na(latitude) &
+                      captive_cultivated == "false" &
+                      quality_grade == "research")
+
+class(gpr)
+
+ga <- ga %>% filter(positional_accuracy<46 & 
+                      latitude<0 &
+                      !is.na(latitude) &
+                      captive_cultivated == "false" &
+                      quality_grade == "research")
+
+class(ga)
+
+gpt <- gpt %>% filter(positional_accuracy<46 & 
+                      latitude<0 &
+                      !is.na(latitude) &
+                      captive_cultivated == "false" &
+                      quality_grade == "research")
+
+class(gpt)
+
+gg <- gg %>% filter(positional_accuracy<46 & 
+                      latitude<0 &
+                      !is.na(latitude) &
+                      captive_cultivated == "false" &
+                      quality_grade == "research")
+
+class(gg)
+```
+
+```{r, include=FALSE}  
+#Make the dataframe a spatial object of class = "sf"
+red_algae_data <- st_as_sf(red_algae_data, coords = c("longitude", "latitude"), 
+                           crs = 4326)
+
+class(red_algae_data) # what class is it?
+
+names(red_algae_data) # note the new "geometry" column
+```
+
+```{r, include=FALSE}  
+#Plot
+ggplot() + geom_sf(data=red_algae_data)
+```
+
+DATA RANGE VERGRÖßERN?
+
+```{r, include=FALSE}  
+# Add basemap to plot
+ggplot() + 
+  annotation_map_tile(type = "osm", progress = "none") + 
+  geom_sf(data=red_algae_data)
+```
+
+Note that there are quite a few base layer/tile options that can be set with type = "". Try rosm::osm.types() to see them all.
+
+```{r, include=FALSE}  
+# Read in Marine Protected Areas data
+mpa 
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
